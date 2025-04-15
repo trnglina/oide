@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Oide</string>
+
+    <string name="editor_toolbar_undo">Undo</string>
+    <string name="editor_toolbar_redo">Redo</string>
+    <string name="editor_toolbar_new">New</string>
+    <string name="editor_toolbar_open">Open</string>
+    <string name="editor_toolbar_save">Save</string>
+    <string name="editor_toolbar_save_as">Save as</string>
+</resources>
