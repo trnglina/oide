@@ -232,13 +232,14 @@ fun EditorScreen(viewModel: EditorViewModel) {
 @Composable
 fun EditorScreenPreview() {
     val context = LocalContext.current
+    val viewModel: EditorViewModel = viewModel(
+        factory = EditorViewModel.Factory(
+            FileSystemDocumentRepository(context.contentResolver),
+            SettingsRepository(context.settingsStore),
+        )
+    )
 
     AppTheme {
-        EditorScreen(viewModel {
-            val documentRepository = FileSystemDocumentRepository(context.contentResolver)
-            val settingsRepository = SettingsRepository(context.settingsStore)
-
-            EditorViewModel(documentRepository, settingsRepository)
-        })
+        EditorScreen(viewModel)
     }
 }

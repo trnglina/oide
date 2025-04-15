@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.delete
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.oide.data.FileSystemDocumentRepository
 import app.oide.data.SettingsRepository
@@ -140,6 +141,20 @@ class EditorViewModel(
             // TODO: Handle failure
 
             EditorState.Unsaved()
+        }
+    }
+
+    class Factory(
+        private val documentRepository: FileSystemDocumentRepository,
+        private val settingsRepository: SettingsRepository,
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(EditorViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return EditorViewModel(documentRepository, settingsRepository) as T
+            }
+
+            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }
