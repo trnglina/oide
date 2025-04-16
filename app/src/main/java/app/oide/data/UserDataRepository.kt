@@ -3,20 +3,20 @@ package app.oide.data
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.datastore.core.DataStore
-import app.oide.Settings
+import app.oide.UserData
 import kotlinx.coroutines.flow.firstOrNull
 
-class SettingsRepository(private val settingsStore: DataStore<Settings>) {
+class UserDataRepository(private val userDataStore: DataStore<UserData>) {
     companion object {
-        const val TAG = "SettingsRepository"
+        const val TAG = "UserDataRepository"
     }
 
     suspend fun getLastFile(): Uri? {
-        return settingsStore.data.firstOrNull()?.lastFile?.toUri()
+        return userDataStore.data.firstOrNull()?.lastFile?.toUri()
     }
 
     suspend fun storeLastFile(path: Uri?) {
-        settingsStore.updateData { current ->
+        userDataStore.updateData { current ->
             var builder = current.toBuilder()
 
             builder = if (path != null) {

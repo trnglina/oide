@@ -7,7 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.oide.data.FileSystemDocumentRepository
-import app.oide.data.SettingsRepository
+import app.oide.data.UserDataRepository
 import app.oide.ui.screens.EditorScreen
 import app.oide.ui.screens.EditorViewModel
 import app.oide.ui.theme.AppTheme
@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
             val viewModel: EditorViewModel = viewModel(
                 factory = EditorViewModel.Factory(
                     FileSystemDocumentRepository(contentResolver),
-                    SettingsRepository(settingsStore),
+                    UserDataRepository(userDataStore),
                 )
             )
 

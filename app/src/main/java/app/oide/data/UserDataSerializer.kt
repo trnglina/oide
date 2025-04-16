@@ -2,21 +2,21 @@ package app.oide.data
 
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer
-import app.oide.Settings
+import app.oide.UserData
 import com.google.protobuf.InvalidProtocolBufferException
 import java.io.InputStream
 import java.io.OutputStream
 
-object SettingsSerializer : Serializer<Settings> {
-    override val defaultValue: Settings = Settings.getDefaultInstance()
+object UserDataSerializer : Serializer<UserData> {
+    override val defaultValue: UserData = UserData.getDefaultInstance()
 
-    override suspend fun readFrom(input: InputStream): Settings {
+    override suspend fun readFrom(input: InputStream): UserData {
         try {
-            return Settings.parseFrom(input)
+            return UserData.parseFrom(input)
         } catch (exception: InvalidProtocolBufferException) {
             throw CorruptionException("Cannot read proto.", exception)
         }
     }
 
-    override suspend fun writeTo(t: Settings, output: OutputStream) = t.writeTo(output)
+    override suspend fun writeTo(t: UserData, output: OutputStream) = t.writeTo(output)
 }

@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.oide.data.FileSystemDocumentRepository
-import app.oide.data.SettingsRepository
+import app.oide.data.UserDataRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -31,7 +31,7 @@ sealed class EditorState {
 
 class EditorViewModel(
     private val documentRepository: FileSystemDocumentRepository,
-    private val settingsRepository: SettingsRepository,
+    private val userDataRepository: UserDataRepository,
 ) : ViewModel() {
     companion object {
         const val TAG = "EditorViewModel"
@@ -46,7 +46,7 @@ class EditorViewModel(
         viewModelScope.launch {
             _state.update {
                 textFieldState.edit { delete(0, length) }
-                settingsRepository.storeLastFile(null)
+                userDataRepository.storeLastFile(null)
                 Log.i(TAG, "Cleared editor")
 
                 EditorState.Unsaved()
@@ -89,7 +89,7 @@ class EditorViewModel(
                     val content = textFieldState.text.toString()
 
                     documentRepository.writeFileContent(uri, content).getOrThrow()
-                    settingsRepository.storeLastFile(uri)
+                    userDataRepository.storeLastFile(uri)
                     Log.i(TAG, "Saved file: $uri")
 
                     EditorState.Saved(
@@ -118,7 +118,7 @@ class EditorViewModel(
     fun loadFromLastFile() {
         viewModelScope.launch {
             _state.update { current ->
-                val uri = settingsRepository.getLastFile() ?: return@update current
+                val uri = userDataRepository.getLastFile() ?: return@update current
                 loadFile(uri)
             }
         }
@@ -130,7 +130,7 @@ class EditorViewModel(
             val content = documentRepository.readFileContent(uri).getOrThrow()
 
             textFieldState.edit { replace(0, length, content) }
-            settingsRepository.storeLastFile(uri)
+            userDataRepository.storeLastFile(uri)
             Log.i(TAG, "Loaded file: $uri")
 
             EditorState.Saved(
@@ -148,12 +148,12 @@ class EditorViewModel(
 
     class Factory(
         private val documentRepository: FileSystemDocumentRepository,
-        private val settingsRepository: SettingsRepository,
+        private val userDataRepository: UserDataRepository,
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(EditorViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
-                return EditorViewModel(documentRepository, settingsRepository) as T
+                return EditorViewModel(documentRepository, userDataRepository) as T
             }
 
             throw IllegalArgumentException("Unknown ViewModel class")

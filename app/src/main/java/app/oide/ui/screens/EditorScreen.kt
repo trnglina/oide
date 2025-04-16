@@ -46,11 +46,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.oide.R
 import app.oide.data.FileSystemDocumentRepository
-import app.oide.data.SettingsRepository
+import app.oide.data.UserDataRepository
 import app.oide.plus
-import app.oide.settingsStore
 import app.oide.ui.Editor
 import app.oide.ui.theme.AppTheme
+import app.oide.userDataStore
 import kotlinx.coroutines.delay
 
 @Composable
@@ -235,7 +235,7 @@ fun EditorScreenPreview() {
     val viewModel: EditorViewModel = viewModel(
         factory = EditorViewModel.Factory(
             FileSystemDocumentRepository(context.contentResolver),
-            SettingsRepository(context.settingsStore),
+            UserDataRepository(context.userDataStore),
         )
     )
 
