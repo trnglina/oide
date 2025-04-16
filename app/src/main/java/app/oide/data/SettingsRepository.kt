@@ -17,7 +17,7 @@ class SettingsRepository(private val settingsStore: DataStore<Settings>) {
 
     suspend fun storeLastFile(path: Uri?) {
         settingsStore.updateData { current ->
-            var builder = current.toBuilder();
+            var builder = current.toBuilder()
 
             builder = if (path != null) {
                 builder.setLastFile(path.toString())
