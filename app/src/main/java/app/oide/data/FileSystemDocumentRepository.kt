@@ -8,7 +8,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class FileSystemDocumentRepository(private val contentResolver: ContentResolver) {
-    private val TAG: String = "FileSystemDocumentRepository"
+    companion object {
+        const val TAG = "FileSystemDocumentRepository"
+    }
 
     suspend fun getFileName(uri: Uri): Result<String> =
         withContext(Dispatchers.IO) {

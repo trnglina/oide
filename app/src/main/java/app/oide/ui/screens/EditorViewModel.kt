@@ -33,7 +33,9 @@ class EditorViewModel(
     private val documentRepository: FileSystemDocumentRepository,
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
-    private val TAG: String = "EditorViewModel"
+    companion object {
+        const val TAG = "EditorViewModel"
+    }
 
     private var _state = MutableStateFlow<EditorState>(EditorState.Unsaved())
     val state = _state.asStateFlow()

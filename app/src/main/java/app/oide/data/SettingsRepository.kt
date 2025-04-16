@@ -7,7 +7,9 @@ import app.oide.Settings
 import kotlinx.coroutines.flow.firstOrNull
 
 class SettingsRepository(private val settingsStore: DataStore<Settings>) {
-    private val TAG: String = "SettingsRepository"
+    companion object {
+        const val TAG = "SettingsRepository"
+    }
 
     suspend fun getLastFile(): Uri? {
         return settingsStore.data.firstOrNull()?.lastFile?.toUri()
