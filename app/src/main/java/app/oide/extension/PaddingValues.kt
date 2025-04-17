@@ -1,4 +1,4 @@
-package app.oide
+package app.oide.extension
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding

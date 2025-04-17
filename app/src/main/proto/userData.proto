@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-option java_package = "app.oide";
-option java_multiple_files = true;
-
-message UserData {
-  optional string lastFile = 1;
-}

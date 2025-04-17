@@ -5,11 +5,9 @@ import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.viewmodel.compose.viewModel
-import app.oide.data.FileSystemDocumentRepository
-import app.oide.data.UserDataRepository
-import app.oide.ui.screens.EditorScreen
-import app.oide.ui.screens.EditorViewModel
+import app.oide.ui.Editor
 import app.oide.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
@@ -21,17 +19,22 @@ class MainActivity : ComponentActivity() {
                 or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_LOW_PROFILE)
 
+
         enableEdgeToEdge()
         setContent {
-            val viewModel: EditorViewModel = viewModel(
-                factory = EditorViewModel.Factory(
-                    FileSystemDocumentRepository(contentResolver),
-                    UserDataRepository(userDataStore),
-                )
-            )
+            val viewModel = viewModel<MainViewModel>(factory = MainViewModel.Factory(this))
+            val state = viewModel.state.collectAsState()
 
             AppTheme {
-                EditorScreen(viewModel)
+                Editor(
+                    textFieldState = state.value.textFieldState,
+                    filePath = state.value.filePath,
+
+                    onSaveAs = { uri -> viewModel.saveToFile(uri) },
+                    onOpen = { uri -> viewModel.loadFromFile(uri) },
+                    onSave = { viewModel.save() },
+                    onNew = { viewModel.new() },
+                )
             }
         }
     }
