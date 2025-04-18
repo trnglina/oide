@@ -1,8 +1,7 @@
-package app.oide.ui
+package app.oide.ui.screens
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -19,11 +18,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Redo
 import androidx.compose.material.icons.automirrored.outlined.Undo
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.SaveAs
@@ -36,17 +33,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import app.oide.R
 import app.oide.extension.plus
+import app.oide.ui.TextEditor
 import kotlinx.coroutines.delay
 
-class CreateDocumentContract() : ActivityResultContracts.CreateDocument("text/*")
+class CreateDocumentContract() : ActivityResultContracts.CreateDocument("text/plain")
 
 class OpenDocumentContract() : ActivityResultContracts.OpenDocument() {
     override fun createIntent(context: Context, input: Array<String>): Intent {
@@ -78,27 +79,22 @@ fun ToolbarButton(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Editor(
-    textFieldState: TextFieldState,
-    filePath: Uri?,
+fun EditorScreen(viewModel: EditorViewModel = viewModel(factory = EditorViewModel.Factory)) {
+    val ctx = LocalContext.current
 
-    onSaveAs: (uri: Uri) -> Unit,
-    onOpen: (uri: Uri) -> Unit,
-    onSave: () -> Unit,
-    onNew: () -> Unit,
-) {
+    val state = viewModel.state.collectAsState().value
     val editorFocusRequester = remember { FocusRequester() }
 
     val createDocumentLauncher = rememberLauncherForActivityResult(
         contract = CreateDocumentContract()
     ) { result ->
-        result?.let { uri -> onSaveAs(uri) }
+        result?.let { uri -> viewModel.saveAs(ctx, uri) }
     }
 
     val openDocumentLauncher = rememberLauncherForActivityResult(
         contract = OpenDocumentContract()
     ) { result ->
-        result?.let { uri -> onOpen(uri) }
+        result?.let { uri -> viewModel.replace(ctx, uri) }
     }
 
     Surface(color = MaterialTheme.colorScheme.surface) {
@@ -128,7 +124,7 @@ fun Editor(
                         ) {
                             ToolbarButton(
                                 onClick = {
-                                    onSave()
+                                    viewModel.save(ctx)
                                     openDocumentLauncher.launch(arrayOf("text/*"))
                                 }
                             ) {
@@ -138,7 +134,7 @@ fun Editor(
                                 )
                             }
 
-                            when (filePath) {
+                            when (state.filePath) {
                                 null ->
                                     ToolbarButton(
                                         onClick = {
@@ -164,18 +160,6 @@ fun Editor(
                                     }
 
                             }
-
-                            ToolbarButton(
-                                onClick = {
-                                    onSave()
-                                    onNew()
-                                }
-                            ) {
-                                Icon(
-                                    Icons.Outlined.Add,
-                                    stringResource(R.string.editor_toolbar_new),
-                                )
-                            }
                         }
 
                         Row(
@@ -188,7 +172,7 @@ fun Editor(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             ToolbarButton(
-                                onClick = { textFieldState.undoState.undo() }
+                                onClick = { state.editorState.undoState.undo() }
                             ) {
                                 Icon(
                                     Icons.AutoMirrored.Outlined.Undo,
@@ -198,7 +182,7 @@ fun Editor(
 
                             ToolbarButton(
                                 onClick = {
-                                    textFieldState.undoState.redo()
+                                    state.editorState.undoState.redo()
                                 }
                             ) {
                                 Icon(
@@ -213,14 +197,14 @@ fun Editor(
         ) { innerPadding ->
             TextEditor(
                 contentPadding = PaddingValues(16.dp) + innerPadding,
-                state = textFieldState,
+                state = state.editorState,
                 focusRequester = editorFocusRequester,
             )
         }
     }
 
-    LaunchedEffect(textFieldState.text) {
+    LaunchedEffect(state.editorState.text) {
         delay(500)
-        onSave()
+        viewModel.save(ctx)
     }
 }

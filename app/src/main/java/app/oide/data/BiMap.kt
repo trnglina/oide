@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package app.oide.utility
+package app.oide.data
 
 interface BiMap<K : Any, V : Any> : Map<K, V> {
     override val values: Set<V>

@@ -5,10 +5,13 @@ import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.collectAsState
-import androidx.lifecycle.viewmodel.compose.viewModel
-import app.oide.ui.Editor
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import app.oide.ui.screens.Editor
+import app.oide.ui.screens.EditorScreen
 import app.oide.ui.theme.AppTheme
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,22 +22,17 @@ class MainActivity : ComponentActivity() {
                 or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 or View.SYSTEM_UI_FLAG_LOW_PROFILE)
 
-
         enableEdgeToEdge()
         setContent {
-            val viewModel = viewModel<MainViewModel>(factory = MainViewModel.Factory(this))
-            val state = viewModel.state.collectAsState()
+            val navController = rememberNavController()
 
             AppTheme {
-                Editor(
-                    textFieldState = state.value.textFieldState,
-                    filePath = state.value.filePath,
-
-                    onSaveAs = { uri -> viewModel.saveToFile(uri) },
-                    onOpen = { uri -> viewModel.loadFromFile(uri) },
-                    onSave = { viewModel.save() },
-                    onNew = { viewModel.new() },
-                )
+                NavHost(
+                    navController = navController,
+                    startDestination = Editor(id = UUID.randomUUID().toString())
+                ) {
+                    composable<Editor> { EditorScreen() }
+                }
             }
         }
     }

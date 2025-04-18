@@ -14,8 +14,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -43,6 +45,9 @@ fun TextEditor(
 
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val scrollState = rememberScrollState()
+
+    var lastSelectionTop = rememberSaveable { mutableFloatStateOf(0f) }
+    var lastSelectionBottom = rememberSaveable { mutableFloatStateOf(0f) }
 
     Box(
         modifier = Modifier
@@ -93,13 +98,30 @@ fun TextEditor(
         val viewportBottom = scrollOffset + scrollViewportHeight - topPadding - bottomPadding
 
         val offset = when {
-            selectionBottom > viewportBottom -> selectionBottom - viewportBottom
-            selectionTop < viewportTop -> selectionTop - viewportTop
+            selectionTop < lastSelectionTop.floatValue -> min(
+                0f, selectionTop - viewportTop
+            )
+
+            selectionTop > lastSelectionTop.floatValue -> max(
+                0f, selectionTop - viewportBottom
+            )
+
+            selectionBottom > lastSelectionBottom.floatValue -> max(
+                0f, selectionBottom - viewportBottom
+            )
+
+            selectionBottom < lastSelectionBottom.floatValue -> min(
+                0f, selectionBottom - viewportTop
+            )
+
             else -> 0f
         }
 
         if (offset != 0f) {
             scrollState.scrollBy(offset)
         }
+
+        lastSelectionTop.floatValue = selectionTop
+        lastSelectionBottom.floatValue = selectionBottom
     }
 }
