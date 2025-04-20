@@ -43,7 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.oide.R
-import app.oide.extension.plus
+import app.oide.layout.plus
 import app.oide.ui.TextEditor
 import kotlinx.coroutines.delay
 
