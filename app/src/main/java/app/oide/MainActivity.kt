@@ -11,7 +11,6 @@ import androidx.navigation.compose.rememberNavController
 import app.oide.ui.screens.Editor
 import app.oide.ui.screens.EditorScreen
 import app.oide.ui.theme.AppTheme
-import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +28,7 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 NavHost(
                     navController = navController,
-                    startDestination = Editor(id = UUID.randomUUID().toString())
+                    startDestination = Editor(id = 0)
                 ) {
                     composable<Editor> { EditorScreen() }
                 }

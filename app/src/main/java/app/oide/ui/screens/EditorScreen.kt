@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Redo
 import androidx.compose.material.icons.automirrored.outlined.Undo
@@ -34,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +45,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.oide.R
+import app.oide.data.Sheet
 import app.oide.layout.plus
 import app.oide.ui.TextEditor
 import kotlinx.coroutines.delay
@@ -81,20 +84,20 @@ fun ToolbarButton(
 @Composable
 fun EditorScreen(viewModel: EditorViewModel = viewModel(factory = EditorViewModel.Factory)) {
     val ctx = LocalContext.current
+    val state by remember { viewModel.flow(ctx) }.collectAsState(null)
 
-    val state = viewModel.state.collectAsState().value
     val editorFocusRequester = remember { FocusRequester() }
 
     val createDocumentLauncher = rememberLauncherForActivityResult(
         contract = CreateDocumentContract()
     ) { result ->
-        result?.let { uri -> viewModel.saveAs(ctx, uri) }
+        result?.let { uri -> viewModel.saveAs(uri, ctx) }
     }
 
     val openDocumentLauncher = rememberLauncherForActivityResult(
         contract = OpenDocumentContract()
     ) { result ->
-        result?.let { uri -> viewModel.replace(ctx, uri) }
+        result?.let { uri -> viewModel.replace(uri, ctx) }
     }
 
     Surface(color = MaterialTheme.colorScheme.surface) {
@@ -134,31 +137,29 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel(factory = EditorViewMode
                                 )
                             }
 
-                            when (state.filePath) {
-                                null ->
-                                    ToolbarButton(
-                                        onClick = {
-                                            createDocumentLauncher.launch("")
-                                        }
-                                    ) {
-                                        Icon(
-                                            Icons.Outlined.Save,
-                                            stringResource(R.string.editor_toolbar_save),
-                                        )
+                            val currentState = state
+                            if (currentState == null || currentState.sheet is Sheet.TransientSheet) {
+                                ToolbarButton(
+                                    onClick = {
+                                        createDocumentLauncher.launch("")
                                     }
-
-                                else ->
-                                    ToolbarButton(
-                                        onClick = {
-                                            createDocumentLauncher.launch("")
-                                        }
-                                    ) {
-                                        Icon(
-                                            Icons.Outlined.SaveAs,
-                                            stringResource(R.string.editor_toolbar_save_as),
-                                        )
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.Save,
+                                        stringResource(R.string.editor_toolbar_save),
+                                    )
+                                }
+                            } else {
+                                ToolbarButton(
+                                    onClick = {
+                                        createDocumentLauncher.launch("")
                                     }
-
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.SaveAs,
+                                        stringResource(R.string.editor_toolbar_save_as),
+                                    )
+                                }
                             }
                         }
 
@@ -172,7 +173,7 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel(factory = EditorViewMode
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             ToolbarButton(
-                                onClick = { state.editorState.undoState.undo() }
+                                onClick = { state?.textFieldState?.undoState?.undo() }
                             ) {
                                 Icon(
                                     Icons.AutoMirrored.Outlined.Undo,
@@ -181,9 +182,7 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel(factory = EditorViewMode
                             }
 
                             ToolbarButton(
-                                onClick = {
-                                    state.editorState.undoState.redo()
-                                }
+                                onClick = { state?.textFieldState?.undoState?.redo() }
                             ) {
                                 Icon(
                                     Icons.AutoMirrored.Outlined.Redo,
@@ -197,13 +196,13 @@ fun EditorScreen(viewModel: EditorViewModel = viewModel(factory = EditorViewMode
         ) { innerPadding ->
             TextEditor(
                 contentPadding = PaddingValues(16.dp) + innerPadding,
-                state = state.editorState,
+                state = state?.textFieldState ?: TextFieldState(),
                 focusRequester = editorFocusRequester,
             )
         }
     }
 
-    LaunchedEffect(state.editorState.text) {
+    LaunchedEffect(state?.textFieldState?.text) {
         delay(500)
         viewModel.save(ctx)
     }

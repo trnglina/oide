@@ -86,7 +86,7 @@ fun TextEditor(
             state,
             modifier = Modifier
                 .fillMaxSize()
-                .defaultMinSize(minHeight)
+                .defaultMinSize(minHeight = minHeight)
                 .focusRequester(focusRequester),
             textStyle = TextStyle(
                 color = MaterialTheme.colorScheme.onSurface,

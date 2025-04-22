@@ -2,7 +2,6 @@ package app.oide.ui.screens
 
 import android.content.Context
 import android.net.Uri
-import androidx.compose.foundation.text.input.TextFieldState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -12,69 +11,55 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.toRoute
 import app.oide.MainApplication
-import app.oide.data.EditorStateRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import app.oide.service.EditorService
+import app.oide.service.EditorState
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Editor(
-    val id: String,
+    val id: Int,
 )
 
-data class EditorUiState(
-    val editorState: TextFieldState,
-    val filePath: Uri?,
-)
-
-class EditorViewModel(
-    savedStateHandle: SavedStateHandle,
-    private val editorStateRepository: EditorStateRepository
-) : ViewModel() {
+class EditorViewModel : ViewModel {
     companion object {
         const val TAG = "EditorViewModel"
 
         val Factory = viewModelFactory {
             initializer {
                 val application = this[APPLICATION_KEY] as MainApplication
-                EditorViewModel(this.createSavedStateHandle(), application.editorStateRepository)
+                EditorViewModel(
+                    this.createSavedStateHandle(),
+                    application.editorService
+                )
             }
         }
     }
 
-    private val parameters = savedStateHandle.toRoute<Editor>()
+    private val editorService: EditorService
+    private val parameters: Editor
 
-    private val uiState = MutableStateFlow(EditorUiState(TextFieldState(), null))
-    val state = this.uiState.asStateFlow()
-
-    fun replace(ctx: Context, uri: Uri) {
-        viewModelScope.launch {
-            uiState.update { current ->
-                val textFieldState = editorStateRepository.get(ctx, uri)
-                    .getOrNull() ?: return@update current
-
-                EditorUiState(textFieldState, uri)
-            }
-        }
+    constructor(
+        savedStateHandle: SavedStateHandle,
+        editorService: EditorService,
+    ) : super() {
+        this.editorService = editorService
+        this.parameters = savedStateHandle.toRoute<Editor>()
     }
 
-    fun save(ctx: Context) {
-        viewModelScope.launch {
-            editorStateRepository.save(ctx, uiState.value.editorState)
-        }
+    fun flow(ctx: Context): Flow<EditorState> =
+        editorService.flowById(parameters.id, ctx)
+
+    fun replace(filePath: Uri, ctx: Context) = viewModelScope.launch {
+        editorService.replaceWithFile(parameters.id, filePath, ctx)
     }
 
-    fun saveAs(ctx: Context, uri: Uri) {
-        viewModelScope.launch {
-            uiState.update { current ->
-                val newTextFieldState =
-                    editorStateRepository.saveAs(ctx, uiState.value.editorState, uri)
-                        .getOrNull() ?: return@update current
+    fun save(ctx: Context) = viewModelScope.launch {
+        editorService.save(parameters.id, ctx)
+    }
 
-                EditorUiState(newTextFieldState, uri)
-            }
-        }
+    fun saveAs(filePath: Uri, ctx: Context) = viewModelScope.launch {
+        editorService.saveAs(parameters.id, filePath, ctx)
     }
 }

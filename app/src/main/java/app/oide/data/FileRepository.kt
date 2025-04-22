@@ -12,8 +12,8 @@ class FileRepository() {
     }
 
     suspend fun readContent(
-        ctx: Context,
         filePath: Uri,
+        ctx: Context,
     ): Result<String> =
         withContext(Dispatchers.IO) {
             runCatching {
@@ -36,8 +36,8 @@ class FileRepository() {
         }
 
     suspend fun writeContent(
-        ctx: Context,
         filePath: Uri,
+        ctx: Context,
         content: String,
     ): Result<Unit> =
         withContext(Dispatchers.IO) {
